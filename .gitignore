@@ -114,6 +114,6 @@ compile_commands.json
 *.cflags
 
 # My own directories
-*/not_for_git*
+*not_for_git/*
 
 # End of https://www.toptal.com/developers/gitignore/api/qtcreator,qt,c++
