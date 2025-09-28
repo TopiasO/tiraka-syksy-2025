@@ -36,16 +36,26 @@ Datastructures::~Datastructures()
 
 }
 
-bool Datastructures::add_beacon(BeaconID /*id*/, const Name& /*name*/, Coord /*xy*/, Color /*color*/)
+bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color color)
 {
     // Replace the line below with your implementation
-    throw NotImplemented();
+    std::unordered_map<BeaconID, Beacon>::const_iterator found = beacon_map_.find(id);
+    if (found == beacon_map_.end()) {
+        Beacon beacon_struct(id, name, xy, color);
+        std::pair<BeaconID, Beacon> new_beacon(id, beacon_struct);
+        beacon_map_.insert(new_beacon);
+        return true;
+    }
+    else {
+        return false;
+    }
+
 }
 
 int Datastructures::beacon_count()
 {
     // Replace the line below with your implementation
-    throw NotImplemented();
+    return beacon_map_.size();
 }
 
 void Datastructures::clear_beacons()

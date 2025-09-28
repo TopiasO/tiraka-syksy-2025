@@ -8,6 +8,7 @@
 #include <utility>
 #include <limits>
 #include <source_location>
+#include <unordered_map>
 
 // Type for beacon IDs
 using BeaconID = std::string;
@@ -105,6 +106,18 @@ private:
 
 // This is the class you are supposed to implement
 
+// Struct that represents a single beacon. Data fields should be self evident.
+
+struct Beacon {
+    BeaconID id;
+    Name name;
+    Coord xy;
+    Color color;
+};
+
+//type for the main datastructure used for storing all the beacons.
+using Beacon_uo_map = std::unordered_map<BeaconID, Beacon>;
+
 class Datastructures
 {
 public:
@@ -113,8 +126,13 @@ public:
 
     // A operations
 
-    // Estimate of performance:
+    //I won't use the symbols for performance because I'm lazy.
+
+    // Estimate of performance: Best case(1), Average case(1), Worst case(n)
     // Short rationale for estimate:
+    //Average case for find() is O(1), worst case O(size()).
+    //Average case for insert() is O(1), worst case is O(size()).
+    //So average and best case are standard time. While worst case is O(size()).
     bool add_beacon(BeaconID id, Name const& name, Coord xy, Color color);
 
     // Estimate of performance:
@@ -237,6 +255,14 @@ public:
 
 private:
     // Explain below your rationale for choosing the data structures you use in this class.
+
+    /*Main datastructure for the program is a std::unordered_map<BeaconID, beacon>.
+     * This was chosen because the 4 most used operations all require fetching beacons
+     * by ID and unordered_map allows this to be done in stadard time on average.
+    */
+    Beacon_uo_map beacon_map_;
+
+
 
     // Add stuff needed for your class implementation below
 
