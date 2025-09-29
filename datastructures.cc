@@ -53,30 +53,33 @@ bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color c
 
 int Datastructures::beacon_count()
 {
-    // Replace the line below with your implementation
     return beacon_map_.size();
 }
 
 void Datastructures::clear_beacons()
 {
-    // Replace the line below with your implementation
     beacon_map_.clear();
 }
 
 std::vector<BeaconID> Datastructures::all_beacons()
 {
-    // Replace the line below with your implementation
+    //Initialize result vector
     std::vector<BeaconID> result = {};
-    for (const auto& [id, bcn] : beacon_map_ ) {
+
+    for (const auto& [id, beacon] : beacon_map_ ) {
         result.push_back(id);
     }
     return result;
 }
 
-Name Datastructures::get_name(BeaconID /*id*/)
+Name Datastructures::get_name(BeaconID id)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    if (beacon_map_.contains(id)) {
+        return beacon_map_.at(id).name;
+    }
+    else {
+        return NO_NAME;
+    }
 }
 
 Coord Datastructures::get_coordinates(BeaconID /*id*/)

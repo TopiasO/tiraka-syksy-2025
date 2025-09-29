@@ -127,13 +127,10 @@ public:
 
     // A operations
 
-    //I won't use the symbols for performance because I'm lazy.
+    //I won't use the symbols to describe asymptomatic performance because I'm lazy.
 
-    // Estimate of performance: Best case(1), Average case(1), Worst case(n)
+    // Estimate of performance:
     // Short rationale for estimate:
-    //Average case for contains() is O(1), worst case is O(size()).
-    //Average case for insert() is O(1), worst case is O(size()).
-    //So average and best case are standard time. While worst case is O(size()).
     bool add_beacon(BeaconID id, Name const& name, Coord xy, Color color);
 
     // Estimate of performance:
