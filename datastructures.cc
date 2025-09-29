@@ -46,6 +46,8 @@ bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color c
         //maintain auxiliary data structures that help with getting
         //sorted data.
         name_map_.emplace(name, beaconptr);
+        int brightness = 3*color.r+6*color.g+color.b;
+        brightness_map_.emplace(brightness, beaconptr);
         return true;
     }
     return false;
@@ -113,20 +115,23 @@ std::vector<BeaconID> Datastructures::beacons_alphabetically()
 
 std::vector<BeaconID> Datastructures::beacons_brightness_increasing()
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    std::vector<BeaconID> result = {};
+    for (const auto& [brightness, beaconptr] : brightness_map_ ) {
+        result.push_back(beaconptr->id);
+    }
+    return result;
 }
 
 BeaconID Datastructures::min_brightness()
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    return brightness_map_.begin()->second->id;
 }
 
 BeaconID Datastructures::max_brightness()
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    auto max_b_it = brightness_map_.end();
+    max_b_it--;
+    return max_b_it->second->id;
 }
 
 std::vector<BeaconID> Datastructures::find_beacons(Name const& /*name*/)
