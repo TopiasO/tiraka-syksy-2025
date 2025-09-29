@@ -38,17 +38,12 @@ Datastructures::~Datastructures()
 
 bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color color)
 {
-    //Check for id in the map
-    if (beacon_map_.contains(id)) {
-        return false;
-    }
-    else {
-        Beacon beacon_struct(id, name, xy, color);
-        std::pair<BeaconID, Beacon> new_beacon(id, beacon_struct);
-        beacon_map_.insert(new_beacon);
-        return true;
-    }
+    Beacon new_beacon(id, name, xy, color);
 
+    //Emplace returns a pair where the first is an iterator
+    //Pointing to where the pair is in the map and the
+    //second is a boolean indicating if the insertion happened
+    return beacon_map_.emplace(id, new_beacon).second;
 }
 
 int Datastructures::beacon_count()
