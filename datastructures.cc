@@ -38,12 +38,17 @@ Datastructures::~Datastructures()
 
 bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color color)
 {
-    //(id, id, name, xy, color) in try_emplace reads as std::pair<BeaconID, Beacon>
-    //try_emplace() returns a pair where the second value is a boolean
-    //indicating if the key value pair was inserted in the map.
-    //I chose try_emplace() over emplace() because supposedly it constructs the
-    //the value only if the key isn't a duplicate.
-    return beacon_map_.try_emplace(id, id, name, xy, color).second;
+    //make a shared_ptr to the new Beacon object.
+    std::shared_ptr<Beacon> beaconptr = std::make_shared<Beacon>(id, name, xy, color);
+
+    //emplace.second returns true if the key (id) wasn't a duplicate
+    if (beacon_map_.emplace(id, beaconptr).second) {
+        //maintain auxiliary data structures that help with getting
+        //sorted data.
+        name_map_.emplace(name, beaconptr);
+        return true;
+    }
+    return false;
 }
 
 int Datastructures::beacon_count()
@@ -70,29 +75,40 @@ std::vector<BeaconID> Datastructures::all_beacons()
 Name Datastructures::get_name(BeaconID id)
 {
     if (beacon_map_.contains(id)) {
-        return beacon_map_.at(id).name;
+        return beacon_map_.at(id)->name;
     }
     else {
         return NO_NAME;
     }
 }
 
-Coord Datastructures::get_coordinates(BeaconID /*id*/)
+Coord Datastructures::get_coordinates(BeaconID id)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    if (beacon_map_.contains(id)) {
+        return beacon_map_.at(id)->xy;
+    }
+    else {
+        return NO_COORD;
+    }
 }
 
-Color Datastructures::get_color(BeaconID /*id*/)
+Color Datastructures::get_color(BeaconID id)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    if (beacon_map_.contains(id)) {
+        return beacon_map_.at(id)->color;
+    }
+    else {
+        return NO_COLOR;
+    }
 }
 
 std::vector<BeaconID> Datastructures::beacons_alphabetically()
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    std::vector<BeaconID> result = {};
+    for (const auto& [name, beaconptr] : name_map_ ) {
+        result.push_back(beaconptr->id);
+    }
+    return result;
 }
 
 std::vector<BeaconID> Datastructures::beacons_brightness_increasing()

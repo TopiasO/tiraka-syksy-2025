@@ -9,7 +9,9 @@
 #include <limits>
 #include <source_location>
 #include <unordered_map>
+#include <map>
 #include <algorithm>
+#include <memory>
 
 // Type for beacon IDs
 using BeaconID = std::string;
@@ -117,7 +119,13 @@ struct Beacon {
 };
 
 //type for the main datastructure used for storing all the beacons.
-using Beacon_uo_map = std::unordered_map<BeaconID, Beacon>;
+using Beacon_uo_map = std::unordered_map<BeaconID, std::shared_ptr<Beacon>>;
+
+//Used for getting the beacons sorted alphabetically.
+using Beacon_name_map = std::multimap<Name, std::shared_ptr<Beacon>>;
+
+//Used for sort_brightness, min_ and max_brightness.
+using Beacon_brightness_map = std::multimap<int, std::shared_ptr<Beacon>>;
 
 class Datastructures
 {
@@ -260,6 +268,8 @@ private:
     */
     Beacon_uo_map beacon_map_;
 
+    Beacon_name_map name_map_;
+    Beacon_brightness_map brightness_map_;
 
 
     // Add stuff needed for your class implementation below
