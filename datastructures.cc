@@ -38,12 +38,12 @@ Datastructures::~Datastructures()
 
 bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color color)
 {
-    Beacon new_beacon(id, name, xy, color);
-
-    //Emplace returns a pair where the first is an iterator
-    //Pointing to where the pair is in the map and the
-    //second is a boolean indicating if the insertion happened
-    return beacon_map_.emplace(id, new_beacon).second;
+    //(id, id, name, xy, color) in try_emplace reads as std::pair<BeaconID, Beacon>
+    //try_emplace() returns a pair where the second value is a boolean
+    //indicating if the key value pair was inserted in the map.
+    //I chose try_emplace() over emplace() because supposedly it constructs the
+    //the value only if the key isn't a duplicate.
+    return beacon_map_.try_emplace(id, id, name, xy, color).second;
 }
 
 int Datastructures::beacon_count()
