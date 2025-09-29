@@ -5,6 +5,7 @@
 #include "datastructures.hh"
 
 #include <random>
+#include <iostream>
 
 std::minstd_rand rand_engine; // Reasonably quick pseudo-random generator
 
@@ -124,20 +125,29 @@ std::vector<BeaconID> Datastructures::beacons_brightness_increasing()
 
 BeaconID Datastructures::min_brightness()
 {
+    //->second=Beacon tied to this key.
     return brightness_map_.begin()->second->id;
 }
 
 BeaconID Datastructures::max_brightness()
 {
+    //iterator marking the space after the last element of
+    //the map.
     auto max_b_it = brightness_map_.end();
+    //decrement. now it points to the last element.
     max_b_it--;
     return max_b_it->second->id;
 }
 
-std::vector<BeaconID> Datastructures::find_beacons(Name const& /*name*/)
+std::vector<BeaconID> Datastructures::find_beacons(Name const& name)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    std::vector<BeaconID> result = {};
+    auto range = name_map_.equal_range(name);
+    for (auto& i = range.first; i != range.second; ++i) {
+        result.push_back(i->second->id);
+    }
+    std::sort(result.begin(), result.end());
+    return result;
 }
 
 bool Datastructures::change_beacon_name(BeaconID /*id*/, const Name& /*newname*/)
