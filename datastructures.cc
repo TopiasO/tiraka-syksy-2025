@@ -5,7 +5,6 @@
 #include "datastructures.hh"
 
 #include <random>
-#include <iostream>
 
 std::minstd_rand rand_engine; // Reasonably quick pseudo-random generator
 
@@ -150,10 +149,24 @@ std::vector<BeaconID> Datastructures::find_beacons(Name const& name)
     return result;
 }
 
-bool Datastructures::change_beacon_name(BeaconID /*id*/, const Name& /*newname*/)
+bool Datastructures::change_beacon_name(BeaconID id, const Name& newname)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    if (beacon_map_.contains(id)) {
+        auto range = name_map_.equal_range(beacon_map_.at(id)->name);
+        auto& i = range.first;
+        for (i; i != range.second; ++i) {
+            if (i->second->id == id) {
+                break;
+            }
+        }
+        name_map_.emplace(newname, i->second);
+        name_map_.erase(i);
+        beacon_map_.at(id)->name = newname;
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 bool Datastructures::add_lightbeam(BeaconID /*sourceid*/, BeaconID /*targetid*/)
