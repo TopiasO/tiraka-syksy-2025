@@ -39,7 +39,7 @@ Datastructures::~Datastructures()
 bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color color)
 {
     //make a shared_ptr to the new Beacon object.
-    std::shared_ptr<Beacon> beaconptr = std::make_shared<Beacon>(id, name, xy, color);
+    std::shared_ptr<Beacon> beaconptr = std::make_shared<Beacon>(id, name, xy, color, color);
 
     //emplace.second returns true if the key (id) wasn't a duplicate
     if (beacon_map_.emplace(id, beaconptr).second) {
@@ -97,7 +97,7 @@ Coord Datastructures::get_coordinates(BeaconID id)
 Color Datastructures::get_color(BeaconID id)
 {
     if (beacon_map_.contains(id)) {
-        return beacon_map_.at(id)->color;
+        return beacon_map_.at(id)->og_color;
     }
     else {
         return NO_COLOR;

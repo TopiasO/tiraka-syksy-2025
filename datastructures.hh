@@ -109,14 +109,21 @@ private:
 
 // This is the class you are supposed to implement
 
-// Struct that represents a single beacon. Data fields should be self evident.
 
+// Struct that represents a single beacon. COMMENT THIS!!!.
 struct Beacon {
     BeaconID id;
     Name name;
     Coord xy;
-    Color color;
+    Color og_color;
+    Color total_color;
+    std::vector<std::shared_ptr<Beacon>> inbeams = {};
+    std::shared_ptr<Beacon> outbeam = nullptr;
+    int t_c_denominator = 1;
 };
+
+
+
 
 //type for the main datastructure used for storing all the beacons.
 using Beacon_uo_map = std::unordered_map<BeaconID, std::shared_ptr<Beacon>>;
