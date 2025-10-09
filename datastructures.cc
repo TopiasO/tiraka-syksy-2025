@@ -246,8 +246,7 @@ std::vector<BeaconID> Datastructures::path_outbeam(BeaconID id)
 
 std::vector<BeaconID> Datastructures::path_inbeam_longest(BeaconID /*id*/)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    //shiiii
 }
 
 Color Datastructures::total_color(BeaconID /*id*/)
