@@ -175,7 +175,7 @@ public:
     // Estimate of performance: W/A/B(n) in the size of beacon_map_.
     // Short rationale for estimate:
     //unordered_map.clear() is linear in the size of the container
-    //and map.clear() is linear in the size of the container.
+    //and multimap.clear() is linear in the size of the container.
     void clear_beacons();
 
     // Estimate of performance: W/A/B(n) in the size of beacon_map_.
@@ -211,20 +211,43 @@ public:
     // Short rationale for estimate: Same as in beacons_alphabetically.
     std::vector<BeaconID> beacons_brightness_increasing();
 
-    // Estimate of performance: W/A/B(log n) in the size of brightness_map_.
-    // Short rationale for estimate:
+    // Estimate of performance: W/A/B(1).
+    // Short rationale for estimate: Everything is constant.
     BeaconID min_brightness();
 
-    // Estimate of performance:
-    // Short rationale for estimate:
+    // Estimate of performance: W/A/B(1).
+    // Short rationale for estimate: Everything is constant.
     BeaconID max_brightness();
 
-    // Estimate of performance:
+    // Estimate of performance: W(n log n) in the size of name_map_.
+    // B(log n) in the size of name_map_.
     // Short rationale for estimate:
+    //multimap.equal_range() is logarithmic in the size of the container.
+    // -> W = log n, B = log n.
+    //Looping through all the elements marked by range is linear in the amount
+    //of elements between range.first and range.second. Worst case every element
+    //name_map_ has the same name and it loops through all of name_map_ linearly.
+    //Best case the name is unique and the for loop is constant.
+    // -> W = log n + n, B = log n + 1.
+    //Worst case std::sort is done on every name in name_map_. Best case the vector only
+    //has 1 element.
+    // -> W = log n + n + n*log n, B = log n + 1 + 1.
+    // -> W = n*log n, B = log n.
     std::vector<BeaconID> find_beacons(Name const& name);
 
-    // Estimate of performance:
+    // Estimate of performance: W(n), B(log n) both in the size of beacon_map_.
     // Short rationale for estimate:
+    //unordered_map.contains() -> W = n, B = 1.
+    //multimap.equal_range() complexity is logarithmic.
+    // -> W = n + log n, B = 1 + log n.
+    //for loop worst case every beacon has the same name, best case the name
+    //is unique.
+    // -> W = n + log n + n, B = 1 + log n + 1.
+    //multimap.emplace() is logarithmic, multimap.erase() is amortized constant
+    //when given a single iterator as a parameter and unordered_map.at() is
+    //constant on average, worst case linear in size.
+    // -> W = n + log n + n + log n + 1 + n, B = 1 + log n + 1 + log n + 1 + 1.
+    //We get. -> W = n and B = log n
     bool change_beacon_name(BeaconID id, Name const& newname);
 
     // We recommend you implement the operations below only after implementing the ones above
