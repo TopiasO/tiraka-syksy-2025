@@ -39,14 +39,14 @@ Datastructures::~Datastructures()
 bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color color)
 {
     //make a shared_ptr to the new Beacon object.
-    std::shared_ptr<Beacon> beaconptr = std::make_shared<Beacon>(id, name, xy, color, color);
+    std::shared_ptr<Beacon> beaconptr = std::make_shared<Beacon>(id, name, xy, color);
 
     //emplace.second returns true if the key (id) wasn't a duplicate
     if (beacon_map_.emplace(id, beaconptr).second) {
         //maintain auxiliary data structures that help with getting
         //sorted data.
         name_map_.emplace(name, beaconptr);
-        int brightness = 3*color.r+6*color.g+color.b;
+        int brightness = 3 * color.r + 6 * color.g + color.b;
         brightness_map_.emplace(brightness, beaconptr);
         return true;
     }
@@ -61,6 +61,8 @@ int Datastructures::beacon_count()
 void Datastructures::clear_beacons()
 {
     beacon_map_.clear();
+    name_map_.clear();
+    brightness_map_.clear();
 }
 
 std::vector<BeaconID> Datastructures::all_beacons()
@@ -71,6 +73,7 @@ std::vector<BeaconID> Datastructures::all_beacons()
     for (const auto& [id, beacon] : beacon_map_ ) {
         result.push_back(id);
     }
+    //result now contains every beacon in beacon_map_
     return result;
 }
 
@@ -124,12 +127,18 @@ std::vector<BeaconID> Datastructures::beacons_brightness_increasing()
 
 BeaconID Datastructures::min_brightness()
 {
+    if (brightness_map_.empty()) {
+        return NO_BEACON;
+    }
     //->second=Beacon tied to this key.
     return brightness_map_.begin()->second->id;
 }
 
 BeaconID Datastructures::max_brightness()
 {
+    if (brightness_map_.empty()) {
+        return NO_BEACON;
+    }
     //iterator marking the space after the last element of
     //the map.
     auto max_b_it = brightness_map_.end();

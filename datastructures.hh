@@ -110,16 +110,26 @@ private:
 // This is the class you are supposed to implement
 
 
-// Struct that represents a single beacon. COMMENT THIS!!!.
+/* Struct that represents a single beacon.
+ * First 4 fields should be self explanatory.
+ * total_color_sum stores the sum of all incoming colors.
+ * true total color value is then calculated by adding og_color to total_color_sum
+ * and dividing each color value by the total_color_denominator, which is the amount of
+ * beacons contributing to total_color_sum.
+ * inbeams is a vector of all the beacons that are directly sending their beam
+ * to this Beacon, empty if there are no such beams.
+ * outbeam is nullptr if this Beacon isn't sending a beam to any other Beacon, otherwise
+ * it is a pointer to a Beacon.
+*/
 struct Beacon {
     BeaconID id;
     Name name;
     Coord xy;
     Color og_color;
-    Color total_color;
+    Color total_color_sum = Color(0,0,0);
     std::vector<std::shared_ptr<Beacon>> inbeams = {};
     std::shared_ptr<Beacon> outbeam = nullptr;
-    int t_c_denominator = 1;
+    int total_color_denominator = 1;
 };
 
 
@@ -142,47 +152,66 @@ public:
 
     // A operations
 
-    //I won't use the symbols to describe asymptomatic performance because I'm lazy.
+    //Worst case = W, Average case = A, Best case = B.
+    //If a line code inside an operation isn't mentioned in an estimate
+    //it means that I assumed that its complexity is constant.
 
     // Estimate of performance:
+    //W(n) in the size of beacon_map_.
+    //A/B(log n) in the size of beacon_map_.
     // Short rationale for estimate:
+    //beacon_map_.emplace is constant on average and linear in the size of the
+    //container in the worst case. -> W = n , A/B case= 1.
+    //name_map_/brightness_map_.emplace() are both logarithmic in the size of the
+    //container. -> W = n + log n, A/B = 1 + log n.
+    //We get W = n and A/B = log n.
     bool add_beacon(BeaconID id, Name const& name, Coord xy, Color color);
 
-    // Estimate of performance:
+    // Estimate of performance: W/A/B(1)
     // Short rationale for estimate:
+    //unordered_map.size() is constant.
     int beacon_count();
 
-    // Estimate of performance:
+    // Estimate of performance: W/A/B(n) in the size of beacon_map_.
     // Short rationale for estimate:
+    //unordered_map.clear() is linear in the size of the container
+    //and map.clear() is linear in the size of the container.
     void clear_beacons();
 
-    // Estimate of performance:
+    // Estimate of performance: W/A/B(n) in the size of beacon_map_.
     // Short rationale for estimate:
+    //A for loop through all the elements in beacon_map_ is linear in its size.
     std::vector<BeaconID> all_beacons();
 
-    // Estimate of performance:
+    // Estimate of performance: W(n) in the size of beacon_map_. A/B(1).
     // Short rationale for estimate:
+    //unordered_map.contains() is constant on average, worst case linear in the
+    //size of the container. -> W = n, A/B = 1.
+    //unordered_map.at() is constant on average, worst case linear in size of the
+    //container. -> W = n + n, A/B = 1 + 1.
+    //We get W = n and A/B = 1.
     Name get_name(BeaconID id);
 
-    // Estimate of performance:
-    // Short rationale for estimate:
+    // Estimate of performance: W(n) in the size of beacon_map_. A/B(1).
+    // Short rationale for estimate: Same as in get_name.
     Coord get_coordinates(BeaconID id);
 
-    // Estimate of performance:
-    // Short rationale for estimate:
+    // Estimate of performance: W(n) in the size of beacon_map_. A/B(1).
+    // Short rationale for estimate: Same as in get_name.
     Color get_color(BeaconID id);
 
     // We recommend you implement the operations below only after implementing the ones above
 
-    // Estimate of performance:
-    // Short rationale for estimate:
+    // Estimate of performance: W/A/B(n) in the size of name_map_.
+    // Short rationale for estimate: A for loop through all the elements
+    //in name_map_ is linear in its size.
     std::vector<BeaconID> beacons_alphabetically();
 
-    // Estimate of performance:
-    // Short rationale for estimate:
+    // Estimate of performance: W/A/B(n) in the size of brightness_map_.
+    // Short rationale for estimate: Same as in beacons_alphabetically.
     std::vector<BeaconID> beacons_brightness_increasing();
 
-    // Estimate of performance:
+    // Estimate of performance: W/A/B(log n) in the size of brightness_map_.
     // Short rationale for estimate:
     BeaconID min_brightness();
 
@@ -269,18 +298,25 @@ public:
 private:
     // Explain below your rationale for choosing the data structures you use in this class.
 
+    // Add stuff needed for your class implementation below
+
     /*Main datastructure for the program is a std::unordered_map<BeaconID, beacon>.
      * This was chosen because the 4 most used operations all require fetching beacons
      * by ID and unordered_map allows this to be done in stadard time on average.
     */
     Beacon_uo_map beacon_map_;
 
+    //Ordered map where names of beacons and their pointers are stored.
+    //Without this data structure. Getting the beacons in an alphabetical
+    //order would require beacon names and beacon pointers to be extracted into
+    //a new data structure that would be sorted by name and then moved to a
+    //vector that is returned in the methods that need the beacons to be sorted alphabetically.
     Beacon_name_map name_map_;
+
+    //Ordered map where the brightness of the og_color of a beacon and a pointer
+    //to said beacon is stored. The reasons for using this data structure are the same as above.
+    //Additionally max/min_brightness methods are fast by using map.end()/begin().
     Beacon_brightness_map brightness_map_;
-
-
-    // Add stuff needed for your class implementation below
-
 };
 
 #endif // DATASTRUCTURES_HH
