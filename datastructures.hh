@@ -271,8 +271,12 @@ public:
     // -> W = n + n, B = 1 + 1. We get W = n, B = 1.
     std::vector<BeaconID> get_lightsources(BeaconID id);
 
-    // Estimate of performance:
+    // Estimate of performance: W(n) in the size of beacon_map_. B(1).
     // Short rationale for estimate:
+    //unordered_map.contains()/.at() worst case linear, average case constant.
+    // -> W = 2*n, B = 2.
+    //Worst case every beacon is in the linked list. Best case no outbeam is sent.
+    // -> W = 2*n + n, B = 2 + 1. We get W = n, B = 1.
     std::vector<BeaconID> path_outbeam(BeaconID id);
 
     // B operations

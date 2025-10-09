@@ -213,16 +213,35 @@ std::vector<BeaconID> Datastructures::get_lightsources(BeaconID id)
         return result;
     }
     const auto& inbeams = beacon_map_.at(id)->inbeams;
+
+    //The set inbeams is already sorted in ascending order by ids
     for (const auto& beacon_id: inbeams) {
         result.push_back(beacon_id);
     }
     return result;
 }
 
-std::vector<BeaconID> Datastructures::path_outbeam(BeaconID /*id*/)
+std::vector<BeaconID> Datastructures::path_outbeam(BeaconID id)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    //shii
+    std::vector<BeaconID> result = {};
+    if (!beacon_map_.contains(id)) {
+        result.push_back(NO_BEACON);
+        return result;
+    }
+    //Add id to results
+    result.push_back(id);
+
+    //Create beacon_ptr to id.
+    std::shared_ptr<Beacon> beacon_ptr = beacon_map_.at(id);
+
+    //Go through the linked list of outbeams and ids to result.
+    while (beacon_ptr->outbeam != nullptr) {
+        beacon_ptr = beacon_ptr->outbeam;
+        result.push_back(beacon_ptr->id);
+    }
+
+    return result;
 }
 
 std::vector<BeaconID> Datastructures::path_inbeam_longest(BeaconID /*id*/)
