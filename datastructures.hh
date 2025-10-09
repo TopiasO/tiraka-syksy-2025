@@ -252,8 +252,10 @@ public:
 
     // We recommend you implement the operations below only after implementing the ones above
 
-    // Estimate of performance:
+    // Estimate of performance: W(n) in the size of beacon_map_. A/B(1)
     // Short rationale for estimate:
+    //unordered_map.contains()/at() worst case linear in size, average case constant.
+    // -> W = 3*n, A/B = 3. -> W = n, A/B = 1.
     bool add_lightbeam(BeaconID sourceid, BeaconID targetid);
 
     // Estimate of performance:

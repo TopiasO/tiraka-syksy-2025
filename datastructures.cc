@@ -178,10 +178,30 @@ bool Datastructures::change_beacon_name(BeaconID id, const Name& newname)
     }
 }
 
-bool Datastructures::add_lightbeam(BeaconID /*sourceid*/, BeaconID /*targetid*/)
+bool Datastructures::add_lightbeam(BeaconID sourceid, BeaconID targetid)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    //Check that both beacons exist. Check that source beacon isn't already
+    //beaming someone else.
+    if (!beacon_map_.contains(sourceid) || !beacon_map_.contains(targetid)
+        || beacon_map_.at(sourceid)->outbeam != nullptr) {
+        return false;
+    }
+
+    std::shared_ptr<Beacon> source_beacon = beacon_map_.at(sourceid);
+    std::shared_ptr<Beacon> target_beacon = beacon_map_.at(targetid);
+
+    //Save that source beacon sends it beam to target beacon.
+    source_beacon->outbeam = target_beacon;
+
+    target_beacon->inbeams.push_back(source_beacon);
+    target_beacon->total_color_denominator += source_beacon->total_color_denominator;
+
+    //I should probably implement addition of two Color structs...
+    target_beacon->total_color_sum.r = source_beacon->og_color.r + source_beacon->total_color_sum.r;
+    target_beacon->total_color_sum.g = source_beacon->og_color.g + source_beacon->total_color_sum.g;
+    target_beacon->total_color_sum.b = source_beacon->og_color.b + source_beacon->total_color_sum.b;
+
+    return true;
 }
 
 std::vector<BeaconID> Datastructures::get_lightsources(BeaconID /*id*/)
