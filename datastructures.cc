@@ -244,9 +244,16 @@ std::vector<BeaconID> Datastructures::path_outbeam(BeaconID id)
     return result;
 }
 
-std::vector<BeaconID> Datastructures::path_inbeam_longest(BeaconID /*id*/)
+std::vector<BeaconID> Datastructures::path_inbeam_longest(BeaconID id)
 {
-    //shiiii
+    std::vector<BeaconID> longest_inbeam_route = {};
+    if (!beacon_map_.contains(id)) {
+        longest_inbeam_route.push_back(NO_BEACON);
+        return longest_inbeam_route;
+    }
+
+    longest_inbeam_route = get_longest_inbeam_route(id);
+    return longest_inbeam_route;
 }
 
 Color Datastructures::total_color(BeaconID /*id*/)
@@ -314,3 +321,31 @@ std::vector<Coord> Datastructures::route_fibre_cycle(Coord /*startxpoint*/)
     // Replace the line below with your implementation
     throw NotImplemented();
 }
+
+std::vector<BeaconID> Datastructures::get_longest_inbeam_route(BeaconID id) const
+{
+    std::vector<BeaconID> longest_route = {};
+
+    //Easier to read like this
+    std::shared_ptr<Beacon> this_beacon = beacon_map_.at(id);
+
+    //Iterate through the ids corresponding inbeams.
+    for (const auto& inbeam_id: this_beacon->inbeams) {
+        //Get the longest inbeam route leading to the beacon with the id inbeam_id
+        std::vector<BeaconID> new_route = get_longest_inbeam_route(inbeam_id);
+
+        //Compare lengths
+        if (longest_route.size() < new_route.size()) {
+            //Huh size does matter
+            longest_route = new_route;
+        }
+    }
+
+    //If the beacon had no inbeams, the for loop will be skipped
+    //and a vector with only this id will be returned. Otherwise
+    //append this id to the end of the longest known route and
+    //return it.
+    longest_route.push_back(id);
+    return longest_route;
+}
+

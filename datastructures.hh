@@ -281,8 +281,11 @@ public:
 
     // B operations
 
-    // Estimate of performance:
+    // Estimate of performance: W(n) in the size of beacon_map_. B(1).
     // Short rationale for estimate:
+    //undoreder_map.contains() worst case linear, average case constant.
+    //get_longest_inbeam_route() W(n), B(1).
+    // -> W = n, B(1).
     std::vector<BeaconID> path_inbeam_longest(BeaconID id);
 
     // Estimate of performance:
@@ -336,8 +339,6 @@ public:
 private:
     // Explain below your rationale for choosing the data structures you use in this class.
 
-    // Add stuff needed for your class implementation below
-
     /*Main datastructure for the program is a std::unordered_map<BeaconID, beacon>.
      * This was chosen because the 4 most used operations all require fetching beacons
      * by ID and unordered_map allows this to be done in stadard time on average.
@@ -355,6 +356,27 @@ private:
     //to said beacon is stored. The reasons for using this data structure are the same as above.
     //Additionally max/min_brightness methods are fast by using map.end()/begin().
     Beacon_brightness_map brightness_map_;
+
+
+    // Add stuff needed for your class implementation below
+
+    //Used by path_inbeam_longest. Goes through immediate inbeams in a for loop
+    //Recursively calls itself and returns beacon ids representing the
+    //longest inbeam route.
+    //Adding this function averts calling unordered_map.contains() on
+    //every recursion.
+
+    // Estimate of performance: W(n) in the size of beacon_map_. B(1).
+    // Short rationale for estimate:
+    //unordered_map.at() worst case linear, average case constant.
+    // -> W = n, B = 1.
+    //Beams cannot make loops so absolute worst case is that every beacon
+    //points their beam directly or indirectly to this beacon. which means
+    //that every beacon in beacon_map_ is looped through.
+    //Best case is that there are no inbeams.
+    // -> W = n + n, B = 1 + 1. We get W = n, B = 1.
+    std::vector<BeaconID> get_longest_inbeam_route(BeaconID id) const;
+
 };
 
 #endif // DATASTRUCTURES_HH
