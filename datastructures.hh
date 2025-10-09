@@ -10,6 +10,7 @@
 #include <source_location>
 #include <unordered_map>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <memory>
 
@@ -116,7 +117,7 @@ private:
  * true total color value is then calculated by adding og_color to total_color_sum
  * and dividing each color value by the total_color_denominator, which is the amount of
  * beacons contributing to total_color_sum.
- * inbeams is a vector of all the beacons that are directly sending their beam
+ * inbeams is a set of all the beacons that are directly sending their beam
  * to this Beacon, empty if there are no such beams.
  * outbeam is nullptr if this Beacon isn't sending a beam to any other Beacon, otherwise
  * it is a pointer to a Beacon.
@@ -127,7 +128,7 @@ struct Beacon {
     Coord xy;
     Color og_color;
     Color total_color_sum = Color(0,0,0);
-    std::vector<std::shared_ptr<Beacon>> inbeams = {};
+    std::set<BeaconID> inbeams;
     std::shared_ptr<Beacon> outbeam = nullptr;
     int total_color_denominator = 1;
 };
@@ -252,10 +253,13 @@ public:
 
     // We recommend you implement the operations below only after implementing the ones above
 
-    // Estimate of performance: W(n) in the size of beacon_map_. A/B(1)
+    // Estimate of performance: W(n) and A/B(log n) both in the size of beacon_map_.
     // Short rationale for estimate:
     //unordered_map.contains()/at() worst case linear in size, average case constant.
-    // -> W = 3*n, A/B = 3. -> W = n, A/B = 1.
+    // -> W = 3*n, A/B = 3.
+    //set.insert() is logarithmic.
+    // -> W = 3*n + log n, A/B = 3 + log n.
+    // -> W = n, A/B= log n.
     bool add_lightbeam(BeaconID sourceid, BeaconID targetid);
 
     // Estimate of performance:

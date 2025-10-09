@@ -193,7 +193,7 @@ bool Datastructures::add_lightbeam(BeaconID sourceid, BeaconID targetid)
     //Save that source beacon sends it beam to target beacon.
     source_beacon->outbeam = target_beacon;
 
-    target_beacon->inbeams.push_back(source_beacon);
+    target_beacon->inbeams.insert(source_beacon->id);
     target_beacon->total_color_denominator += source_beacon->total_color_denominator;
 
     //I should probably implement addition of two Color structs...
@@ -204,10 +204,16 @@ bool Datastructures::add_lightbeam(BeaconID sourceid, BeaconID targetid)
     return true;
 }
 
-std::vector<BeaconID> Datastructures::get_lightsources(BeaconID /*id*/)
+std::vector<BeaconID> Datastructures::get_lightsources(BeaconID id)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    std::vector<BeaconID> result = {};
+
+    if (!beacon_map_.contains(id)) {
+        result.push_back(NO_BEACON);
+        return result;
+    }
+
+    return result;
 }
 
 std::vector<BeaconID> Datastructures::path_outbeam(BeaconID /*id*/)
