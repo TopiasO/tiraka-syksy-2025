@@ -39,7 +39,7 @@ Datastructures::~Datastructures()
 bool Datastructures::add_beacon(BeaconID id, const Name& name, Coord xy, Color color)
 {
     //make a shared_ptr to the new Beacon object.
-    std::shared_ptr<Beacon> beaconptr = std::make_shared<Beacon>(id, name, xy, color);
+    std::shared_ptr<Beacon> beaconptr = std::make_shared<Beacon>(id, name, xy, color, color);
 
     //emplace.second returns true if the key (id) wasn't a duplicate
     if (beacon_map_.emplace(id, beaconptr).second) {
@@ -178,6 +178,7 @@ bool Datastructures::change_beacon_name(BeaconID id, const Name& newname)
     }
 }
 
+
 bool Datastructures::add_lightbeam(BeaconID sourceid, BeaconID targetid)
 {
     //Check that both beacons exist. Check that source beacon isn't already
@@ -192,14 +193,24 @@ bool Datastructures::add_lightbeam(BeaconID sourceid, BeaconID targetid)
 
     //Save that source beacon sends it beam to target beacon.
     source_beacon->outbeam = target_beacon;
-
     target_beacon->inbeams.insert(source_beacon->id);
-    target_beacon->total_color_denominator += source_beacon->total_color_denominator;
 
-    //I should probably implement addition of two Color structs...
-    target_beacon->total_color_sum.r = source_beacon->og_color.r + source_beacon->total_color_sum.r;
-    target_beacon->total_color_sum.g = source_beacon->og_color.g + source_beacon->total_color_sum.g;
-    target_beacon->total_color_sum.b = source_beacon->og_color.b + source_beacon->total_color_sum.b;
+    //This lightbeam will affect everyone in the outbeam of target_beacon.
+    //Go through the new outbeam linked list and make the same changes for everyone.
+
+    //Beacons only send out their total color.
+    //Total color is the average of (incoming beams + og_color).
+    while (target_beacon != nullptr) {
+        Color source_total_color = get_total_color(sourceid);
+        target_beacon->total_color_sum.r += source_total_color.r;
+        target_beacon->total_color_sum.g += source_total_color.g;
+        target_beacon->total_color_sum.b += source_total_color.b;
+        //iterate
+        source_beacon = target_beacon;
+        target_beacon = target_beacon->outbeam;
+    }
+
+
 
     return true;
 }
@@ -256,10 +267,13 @@ std::vector<BeaconID> Datastructures::path_inbeam_longest(BeaconID id)
     return longest_inbeam_route;
 }
 
-Color Datastructures::total_color(BeaconID /*id*/)
+Color Datastructures::total_color(BeaconID id)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    if (!beacon_map_.contains(id)) {
+        return NO_COLOR;
+    }
+    Color tc = get_total_color(id);
+    return tc;
 }
 
 bool Datastructures::add_fibre(Coord /*xpoint1*/, Coord /*xpoint2*/, Cost /*cost*/)
@@ -347,5 +361,17 @@ std::vector<BeaconID> Datastructures::get_longest_inbeam_route(BeaconID id) cons
     //return it.
     longest_route.push_back(id);
     return longest_route;
+}
+
+Color Datastructures::get_total_color(BeaconID id) const
+{
+    std::shared_ptr<Beacon> bcn = beacon_map_.at(id);
+
+    int inbeam_c = static_cast<int>(bcn->inbeams.size());
+    inbeam_c += 1;
+
+    Color tc = Color(bcn->total_color_sum.r/inbeam_c, bcn->total_color_sum.g/inbeam_c,
+                     bcn->total_color_sum.b/inbeam_c);
+    return tc;
 }
 

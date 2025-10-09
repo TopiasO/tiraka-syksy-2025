@@ -113,10 +113,7 @@ private:
 
 /* Struct that represents a single beacon.
  * First 4 fields should be self explanatory.
- * total_color_sum stores the sum of all incoming colors.
- * true total color value is then calculated by adding og_color to total_color_sum
- * and dividing each color value by the total_color_denominator, which is the amount of
- * beacons contributing to total_color_sum.
+ * total_color_sum stores the sum used for getting total_color.
  * inbeams is a set of all the beacons that are directly sending their beam
  * to this Beacon, empty if there are no such beams.
  * outbeam is nullptr if this Beacon isn't sending a beam to any other Beacon, otherwise
@@ -127,10 +124,9 @@ struct Beacon {
     Name name;
     Coord xy;
     Color og_color;
-    Color total_color_sum = Color(0,0,0);
+    Color total_color_sum;
     std::set<BeaconID> inbeams;
     std::shared_ptr<Beacon> outbeam = nullptr;
-    int total_color_denominator = 1;
 };
 
 
@@ -253,13 +249,14 @@ public:
 
     // We recommend you implement the operations below only after implementing the ones above
 
-    // Estimate of performance: W(n) and A/B(log n) both in the size of beacon_map_.
+    // Estimate of performance: W(n) and B(log n) both in the size of beacon_map_.
     // Short rationale for estimate:
     //unordered_map.contains()/at() worst case linear in size, average case constant.
-    // -> W = 3*n, A/B = 3.
+    // -> W = 3*n, B = 3.
     //set.insert() is logarithmic.
-    // -> W = 3*n + log n, A/B = 3 + log n.
-    // -> W = n, A/B= log n.
+    // -> W = 3*n + log n, B = 3 + log n.
+    //Worst case outbeam includes all beacons, best case outbeam ends instatly.
+    // -> W = n, B = log n.
     bool add_lightbeam(BeaconID sourceid, BeaconID targetid);
 
     // Estimate of performance: W(n) in size of beacons_map_. B(1).
@@ -376,6 +373,8 @@ private:
     //Best case is that there are no inbeams.
     // -> W = n + n, B = 1 + 1. We get W = n, B = 1.
     std::vector<BeaconID> get_longest_inbeam_route(BeaconID id) const;
+
+    Color get_total_color(BeaconID id) const;
 
 };
 
