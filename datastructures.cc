@@ -212,7 +212,10 @@ std::vector<BeaconID> Datastructures::get_lightsources(BeaconID id)
         result.push_back(NO_BEACON);
         return result;
     }
-
+    const auto& inbeams = beacon_map_.at(id)->inbeams;
+    for (const auto& beacon_id: inbeams) {
+        result.push_back(beacon_id);
+    }
     return result;
 }
 

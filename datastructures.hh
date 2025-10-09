@@ -262,8 +262,13 @@ public:
     // -> W = n, A/B= log n.
     bool add_lightbeam(BeaconID sourceid, BeaconID targetid);
 
-    // Estimate of performance:
+    // Estimate of performance: W(n) in size of beacons_map_. B(1).
     // Short rationale for estimate:
+    //unordered_map.contains() worst case linear, average case constant.
+    // -> W = n, B = 1.
+    //worst case it has to loop through beacon_map_.size()-1 iterations.
+    //Best case zero iterations.
+    // -> W = n + n, B = 1 + 1. We get W = n, B = 1.
     std::vector<BeaconID> get_lightsources(BeaconID id);
 
     // Estimate of performance:
