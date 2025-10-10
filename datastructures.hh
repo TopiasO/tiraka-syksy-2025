@@ -295,8 +295,11 @@ public:
     //For loop linear in unique_fibres_.size().
     std::vector<std::pair<Coord, Coord>> all_fibres();
 
-    // Estimate of performance:
+    // Estimate of performance: W(n) fibres_.size(), B(log n) unique_fibres_.size().
     // Short rationale for estimate:
+    //unordered.contain() W(n), A(1).
+    //set.erase() W/A/B(log n).
+    //Rest average constant, worst linear.
     bool remove_fibre(Coord xpoint1, Coord xpoint2);
 
     // Estimate of performance:

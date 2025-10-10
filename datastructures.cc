@@ -348,9 +348,32 @@ bool Datastructures::remove_fibre(Coord xpoint1, Coord xpoint2)
 {
     //Check if fibre exists.
     if (!unique_fibres_.contains(std::make_pair(xpoint1, xpoint2))) {
-
+        return false;
     }
-    return false;
+    unique_fibres_.erase(std::make_pair(xpoint1, xpoint2));
+
+    //If nodes are ONLY connected to each other.
+    if (fibres_.at(xpoint1)->edges.size() == 1 && fibres_.at(xpoint2)->edges.size() == 1) {
+        fibres_.erase(xpoint1);
+        fibres_.erase(xpoint2);
+        return true;
+    }
+
+    //Check if either one of the nodes is ONLY connected to the other
+    if (fibres_.at(xpoint1)->edges.size() == 1) {
+        fibres_.at(xpoint2)->edges.erase(xpoint1);
+        fibres_.erase(xpoint1);
+    }
+    else if (fibres_.at(xpoint2)->edges.size() == 1) {
+        fibres_.at(xpoint1)->edges.erase(xpoint2);
+        fibres_.erase(xpoint2);
+    }
+    else {
+        //Both nodes are connected to multiple other nodes.
+        fibres_.at(xpoint1)->edges.erase(xpoint2);
+        fibres_.at(xpoint2)->edges.erase(xpoint1);
+    }
+    return true;
 }
 
 void Datastructures::clear_fibres()
