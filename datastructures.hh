@@ -264,13 +264,16 @@ public:
     Color total_color(BeaconID id);
 
     // Estimate of performance: W(n) in fibers_.size().
-    // B(log n) in edges.size().
+    // B(log m+s) in m=edges.size() and s=unique_fibres_.size()? Maybe.
     // Short rationale for estimate:
     //.try_emplace()/.at() worst case linear in fibers_.size(), average case constant.
     //map.contains()/emplace() logarithmic in Fiber_node->edges.size().
     //When function returns true and n = fibers_size(), m = edges.size().
     // -> W = 4n + 3 log m, B = 4 + 3 log m.
-    // -> W = n, B = log m.
+    //set.emplace() logarithmic in unique_fibres_.size()
+    // -> W = 4n + 3 log m + log s, B = 4 + 3 log m + log s,
+    //where s = unique_fibres_.size().
+    // -> W = n, B = log m+s?.
     bool add_fibre(Coord xpoint1, Coord xpoint2, Cost cost);
 
     // Estimate of performance: W/A/B(n log n) in size of fibers_.size().
@@ -287,8 +290,9 @@ public:
     // -> W = n + m, B = 1 + m.
     std::vector<std::pair<Coord, Cost>> get_fibres_from(Coord xpoint);
 
-    // Estimate of performance:
+    // Estimate of performance: W/A/B(n)
     // Short rationale for estimate:
+    //For loop linear in unique_fibres_.size().
     std::vector<std::pair<Coord, Coord>> all_fibres();
 
     // Estimate of performance:
@@ -380,12 +384,21 @@ private:
         std::map<Coord, Cost> edges;
     };
 
-    using Fibres = std::unordered_map<Coord, std::shared_ptr<Fibre_node>, CoordHash>;
+    using Fibre_nodes = std::unordered_map<Coord, std::shared_ptr<Fibre_node>, CoordHash>;
+
+    using Unique_fibres = std::set<std::pair<Coord, Coord>>;
 
 
     //Data structure used for storing necessary information about fibers.
     //Weighted undirected graph.
-    Fibres fibres_;
+    Fibre_nodes fibres_;
+
+
+    //Used by all_fibres. Adds memory overhead, but massively simplifies getting
+    //Unique fibres.
+    Unique_fibres unique_fibres_;
+
+
 
 
     // Add stuff needed for your class implementation below

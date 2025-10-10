@@ -296,6 +296,15 @@ bool Datastructures::add_fibre(Coord xpoint1, Coord xpoint2, Cost cost)
     }
     node1->edges.emplace(xpoint2, cost);
     node2->edges.emplace(xpoint1, cost);
+
+    //Add fibre to unique_fibres.
+    //Make sure pair.first < pair.second.
+    if (xpoint1 < xpoint2) {
+        unique_fibres_.emplace(std::make_pair(xpoint1, xpoint2));
+    } else {
+        unique_fibres_.emplace(std::make_pair(xpoint2, xpoint1));
+    }
+
     return true;
 }
 
@@ -328,14 +337,20 @@ std::vector<std::pair<Coord, Cost> > Datastructures::get_fibres_from(Coord xpoin
 
 std::vector<std::pair<Coord, Coord> > Datastructures::all_fibres()
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    std::vector<std::pair<Coord, Coord>> result = {};
+    for (const auto& fibre: unique_fibres_) {
+        result.push_back(fibre);
+    }
+    return result;
 }
 
-bool Datastructures::remove_fibre(Coord /*xpoint1*/, Coord /*xpoint2*/)
+bool Datastructures::remove_fibre(Coord xpoint1, Coord xpoint2)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    //Check if fibre exists.
+    if (!unique_fibres_.contains(std::make_pair(xpoint1, xpoint2))) {
+
+    }
+    return false;
 }
 
 void Datastructures::clear_fibres()
