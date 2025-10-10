@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <map>
 #include <set>
+#include <algorithm>
 #include <memory>
 
 // Type for beacon IDs
@@ -108,11 +109,6 @@ private:
 };
 
 // This is the class you are supposed to implement
-
-
-
-
-
 
 
 
@@ -315,14 +311,15 @@ public:
 private:
     // Explain below your rationale for choosing the data structures you use in this class.
 
+
     /* Struct that represents a single beacon.
- * First 4 fields should be self explanatory.
- * total_color_sum stores the sum used for getting total_color.
- * inbeams is a set of all the beacons that are directly sending their beam
- * to this Beacon, empty if there are no such beams.
- * outbeam is nullptr if this Beacon isn't sending a beam to any other Beacon, otherwise
- * it is a pointer to a Beacon.
-*/
+     * First 4 fields should be self explanatory.
+     * total_color_sum stores the sum used for getting total_color.
+     * inbeams is a set of all the beacons that are directly sending their beam
+     * to this Beacon, empty if there are no such beams.
+     * outbeam is nullptr if this Beacon isn't sending a beam to any other Beacon, otherwise
+     * it is a pointer to a Beacon.
+    */
     struct Beacon {
         BeaconID id;
         Name name;
@@ -332,6 +329,7 @@ private:
         std::set<BeaconID> inbeams;
         std::shared_ptr<Beacon> outbeam = nullptr;
     };
+
 
     //type for the main datastructure used for storing all the beacons.
     using Beacon_uo_map = std::unordered_map<BeaconID, std::shared_ptr<Beacon>>;
@@ -371,10 +369,12 @@ private:
         std::map<Coord, Cost> edges;
     };
 
-    //Data structure used for storing necessary information about fibers.
-    //Weighted undirected graph
-    using Fibers = std::unordered_map<Coord, std::shared_ptr<Fiber_node>>;
+    using Fibers = std::unordered_map<Coord, std::shared_ptr<Fiber_node>, CoordHash>;
 
+
+    //Data structure used for storing necessary information about fibers.
+    //Weighted undirected graph.
+    Fibers fibers_;
 
 
     // Add stuff needed for your class implementation below

@@ -276,9 +276,27 @@ Color Datastructures::total_color(BeaconID id)
     return tc;
 }
 
-bool Datastructures::add_fibre(Coord /*xpoint1*/, Coord /*xpoint2*/, Cost /*cost*/)
+bool Datastructures::add_fibre(Coord xpoint1, Coord xpoint2, Cost cost)
 {
-    //Shiiii
+    if (xpoint1 == xpoint2) {
+        return false;
+    }
+    //Try emplacing the coords to fibers.
+    //If one already exists -> nothing happens.
+    fibers_.try_emplace(xpoint1, std::make_shared<Fiber_node>(xpoint1));
+    fibers_.try_emplace(xpoint2, std::make_shared<Fiber_node>(xpoint2));
+    std::shared_ptr<Fiber_node> node1 = fibers_.at(xpoint1);
+    std::shared_ptr<Fiber_node> node2 = fibers_.at(xpoint2);
+
+    //Check if the fiber nodes are connected.
+    //If yes do nothing and return false.
+    //If not connect them and return true.
+    if (node1->edges.contains(xpoint2)) {
+        return false;
+    }
+    node1->edges.emplace(xpoint2, cost);
+    node2->edges.emplace(xpoint1, cost);
+    return true;
 }
 
 std::vector<Coord> Datastructures::all_xpoints()
