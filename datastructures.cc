@@ -283,10 +283,10 @@ bool Datastructures::add_fibre(Coord xpoint1, Coord xpoint2, Cost cost)
     }
     //Try emplacing the coords to fibers.
     //If one already exists -> nothing happens.
-    fibers_.try_emplace(xpoint1, std::make_shared<Fiber_node>(xpoint1));
-    fibers_.try_emplace(xpoint2, std::make_shared<Fiber_node>(xpoint2));
-    std::shared_ptr<Fiber_node> node1 = fibers_.at(xpoint1);
-    std::shared_ptr<Fiber_node> node2 = fibers_.at(xpoint2);
+    fibres_.try_emplace(xpoint1, std::make_shared<Fibre_node>(xpoint1));
+    fibres_.try_emplace(xpoint2, std::make_shared<Fibre_node>(xpoint2));
+    std::shared_ptr<Fibre_node> node1 = fibres_.at(xpoint1);
+    std::shared_ptr<Fibre_node> node2 = fibres_.at(xpoint2);
 
     //Check if the fiber nodes are connected.
     //If yes do nothing and return false.
@@ -301,14 +301,29 @@ bool Datastructures::add_fibre(Coord xpoint1, Coord xpoint2, Cost cost)
 
 std::vector<Coord> Datastructures::all_xpoints()
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    std::vector<Coord> result = {};
+    //Iterate through all fibers.
+    for (const auto& [coord, ptr] : fibres_) {
+        result.push_back(coord);
+    }
+    //Sort coordinates.
+    std::sort(result.begin(), result.end());
+    return result;
 }
 
-std::vector<std::pair<Coord, Cost> > Datastructures::get_fibres_from(Coord /*xpoint*/)
+std::vector<std::pair<Coord, Cost> > Datastructures::get_fibres_from(Coord xpoint)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    std::vector<std::pair<Coord, Cost>> fibres_from = {};
+    if (!fibres_.contains(xpoint)) {
+        return fibres_from;
+    }
+
+    //Iterate through the map edges. push back edges in to vector.
+    //Edges are already sorted by coordinate.
+    for (const auto& [goes_to, with_cost] : fibres_.at(xpoint)->edges) {
+        fibres_from.push_back(std::make_pair(goes_to, with_cost));
+    }
+    return fibres_from;
 }
 
 std::vector<std::pair<Coord, Coord> > Datastructures::all_fibres()

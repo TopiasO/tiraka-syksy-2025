@@ -263,17 +263,28 @@ public:
     //get_total_color() worst case linear, best case constant.
     Color total_color(BeaconID id);
 
-    // Estimate of performance: W(n) in the size of beacon_map_. A/B(1).
+    // Estimate of performance: W(n) in fibers_.size().
+    // B(log n) in edges.size().
     // Short rationale for estimate:
-    //contains() worst case linear, average case constant.
+    //.try_emplace()/.at() worst case linear in fibers_.size(), average case constant.
+    //map.contains()/emplace() logarithmic in Fiber_node->edges.size().
+    //When function returns true and n = fibers_size(), m = edges.size().
+    // -> W = 4n + 3 log m, B = 4 + 3 log m.
+    // -> W = n, B = log m.
     bool add_fibre(Coord xpoint1, Coord xpoint2, Cost cost);
 
-    // Estimate of performance:
+    // Estimate of performance: W/A/B(n log n) in size of fibers_.size().
     // Short rationale for estimate:
+    //For loop is linear in fibers_.size().
+    //std::sort n log n in fibers_.size().
     std::vector<Coord> all_xpoints();
 
-    // Estimate of performance:
+    // Estimate of performance: W(n+m), B(m).
     // Short rationale for estimate:
+    //.contains() W(n), B(1).
+    //for loop linear in edges.size().
+    // If n = fibres_.size() and m = edges.size().
+    // -> W = n + m, B = 1 + m.
     std::vector<std::pair<Coord, Cost>> get_fibres_from(Coord xpoint);
 
     // Estimate of performance:
@@ -364,17 +375,17 @@ private:
     //Connection between other fiber nodes is described by edges.
     //If some Coord exists as a key in this nodes edges, then these
     //coordinates are connected and traversal cost is in the value of the map.
-    struct Fiber_node {
+    struct Fibre_node {
         Coord location;
         std::map<Coord, Cost> edges;
     };
 
-    using Fibers = std::unordered_map<Coord, std::shared_ptr<Fiber_node>, CoordHash>;
+    using Fibres = std::unordered_map<Coord, std::shared_ptr<Fibre_node>, CoordHash>;
 
 
     //Data structure used for storing necessary information about fibers.
     //Weighted undirected graph.
-    Fibers fibers_;
+    Fibres fibres_;
 
 
     // Add stuff needed for your class implementation below
