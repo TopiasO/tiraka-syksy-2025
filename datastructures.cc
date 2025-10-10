@@ -278,8 +278,7 @@ Color Datastructures::total_color(BeaconID id)
 
 bool Datastructures::add_fibre(Coord /*xpoint1*/, Coord /*xpoint2*/, Cost /*cost*/)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    //Shiiii
 }
 
 std::vector<Coord> Datastructures::all_xpoints()
@@ -365,9 +364,11 @@ std::vector<BeaconID> Datastructures::get_longest_inbeam_route(BeaconID id) cons
 
 Color Datastructures::get_total_color(BeaconID id) const
 {
+    //W(n), B(1).
     std::shared_ptr<Beacon> bcn = beacon_map_.at(id);
 
-    int inbeam_c = static_cast<int>(bcn->inbeams.size());
+    //W/A/B(1)
+    int inbeam_c = bcn->inbeams.size();
     inbeam_c += 1;
 
     Color tc = Color(bcn->total_color_sum.r/inbeam_c, bcn->total_color_sum.g/inbeam_c,

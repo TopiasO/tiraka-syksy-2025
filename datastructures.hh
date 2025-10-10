@@ -11,7 +11,6 @@
 #include <unordered_map>
 #include <map>
 #include <set>
-#include <algorithm>
 #include <memory>
 
 // Type for beacon IDs
@@ -111,35 +110,12 @@ private:
 // This is the class you are supposed to implement
 
 
-/* Struct that represents a single beacon.
- * First 4 fields should be self explanatory.
- * total_color_sum stores the sum used for getting total_color.
- * inbeams is a set of all the beacons that are directly sending their beam
- * to this Beacon, empty if there are no such beams.
- * outbeam is nullptr if this Beacon isn't sending a beam to any other Beacon, otherwise
- * it is a pointer to a Beacon.
-*/
-struct Beacon {
-    BeaconID id;
-    Name name;
-    Coord xy;
-    Color og_color;
-    Color total_color_sum;
-    std::set<BeaconID> inbeams;
-    std::shared_ptr<Beacon> outbeam = nullptr;
-};
 
 
 
 
-//type for the main datastructure used for storing all the beacons.
-using Beacon_uo_map = std::unordered_map<BeaconID, std::shared_ptr<Beacon>>;
 
-//Used for getting the beacons sorted alphabetically.
-using Beacon_name_map = std::multimap<Name, std::shared_ptr<Beacon>>;
 
-//Used for sort_brightness, min_ and max_brightness.
-using Beacon_brightness_map = std::multimap<int, std::shared_ptr<Beacon>>;
 
 class Datastructures
 {
@@ -285,12 +261,15 @@ public:
     // -> W = n, B(1).
     std::vector<BeaconID> path_inbeam_longest(BeaconID id);
 
-    // Estimate of performance:
+    // Estimate of performance: W(n) in the size of beacon_map_. B(1).
     // Short rationale for estimate:
+    //.contains() worst case linear, average case constant
+    //get_total_color() worst case linear, best case constant.
     Color total_color(BeaconID id);
 
-    // Estimate of performance:
+    // Estimate of performance: W(n) in the size of beacon_map_. A/B(1).
     // Short rationale for estimate:
+    //contains() worst case linear, average case constant.
     bool add_fibre(Coord xpoint1, Coord xpoint2, Cost cost);
 
     // Estimate of performance:
@@ -336,6 +315,33 @@ public:
 private:
     // Explain below your rationale for choosing the data structures you use in this class.
 
+    /* Struct that represents a single beacon.
+ * First 4 fields should be self explanatory.
+ * total_color_sum stores the sum used for getting total_color.
+ * inbeams is a set of all the beacons that are directly sending their beam
+ * to this Beacon, empty if there are no such beams.
+ * outbeam is nullptr if this Beacon isn't sending a beam to any other Beacon, otherwise
+ * it is a pointer to a Beacon.
+*/
+    struct Beacon {
+        BeaconID id;
+        Name name;
+        Coord xy;
+        Color og_color;
+        Color total_color_sum;
+        std::set<BeaconID> inbeams;
+        std::shared_ptr<Beacon> outbeam = nullptr;
+    };
+
+    //type for the main datastructure used for storing all the beacons.
+    using Beacon_uo_map = std::unordered_map<BeaconID, std::shared_ptr<Beacon>>;
+
+    //Used for getting the beacons sorted alphabetically.
+    using Beacon_name_map = std::multimap<Name, std::shared_ptr<Beacon>>;
+
+    //Used for sort_brightness, min_ and max_brightness.
+    using Beacon_brightness_map = std::multimap<int, std::shared_ptr<Beacon>>;
+
     /*Main datastructure for the program is a std::unordered_map<BeaconID, beacon>.
      * This was chosen because the 4 most used operations all require fetching beacons
      * by ID and unordered_map allows this to be done in stadard time on average.
@@ -353,6 +359,22 @@ private:
     //to said beacon is stored. The reasons for using this data structure are the same as above.
     //Additionally max/min_brightness methods are fast by using map.end()/begin().
     Beacon_brightness_map brightness_map_;
+
+
+
+    //Location of a singular fiber node. Location is location.
+    //Connection between other fiber nodes is described by edges.
+    //If some Coord exists as a key in this nodes edges, then these
+    //coordinates are connected and traversal cost is in the value of the map.
+    struct Fiber_node {
+        Coord location;
+        std::map<Coord, Cost> edges;
+    };
+
+    //Data structure used for storing necessary information about fibers.
+    //Weighted undirected graph
+    using Fibers = std::unordered_map<Coord, std::shared_ptr<Fiber_node>>;
+
 
 
     // Add stuff needed for your class implementation below
