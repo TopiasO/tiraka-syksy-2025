@@ -378,20 +378,65 @@ bool Datastructures::remove_fibre(Coord xpoint1, Coord xpoint2)
 
 void Datastructures::clear_fibres()
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    fibres_.clear();
+    unique_fibres_.clear();
 }
 
-std::vector<std::pair<Coord, Cost> > Datastructures::route_any(Coord /*fromxpoint*/, Coord /*toxpoint*/)
+std::vector<std::pair<Coord, Cost> > Datastructures::route_any(Coord fromxpoint, Coord toxpoint)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    //result will be stored in this vector
+    std::vector<std::pair<Coord, Cost>> route = {};
+
+    //If no coordinate no route.
+    if (!fibres_.contains(fromxpoint) || !fibres_.contains(toxpoint)) {
+        return route;
+    }
+
+    //Initialize all nodes to be WHITE, have d=inf, pi=NIL.
+    std::deque<std::shared_ptr<Fibre_node>> Q = reset_fibre_graph_state();
+    //Q works as a checklist for the BFS
+
+
+    std::shared_ptr<Fibre_node> s = fibres_.at(fromxpoint);
+    s->color = GRAY;
+    s->d = 0;
+    Q.push_back(s);
+
+    //v is used on this block level
+    std::shared_ptr<Fibre_node> v = nullptr;
+
+    while (Q.size() != 0) {
+        std::shared_ptr<Fibre_node> u = Q.front();
+        Q.pop_front();
+        for (const auto& [coord, cost] : u->edges) {
+            v = fibres_.at(coord);
+            if (v->color == WHITE) {
+                v->color = GRAY;
+                v->d = u->d+cost;
+                v->path_back = u;
+                Q.push_back(v);
+            }
+            if (v->location == toxpoint) {
+                Q.clear();
+                break;
+            }
+        }
+        u->color = BLACK;
+    }
+    if (v->location == toxpoint) {
+        while (v->path_back != nullptr) {
+            route.push_back(std::make_pair(v->location, v->d));
+            v = v->path_back;
+        }
+        route.push_back(std::make_pair(fromxpoint, s->d));
+        std::reverse(route.begin(), route.end());
+    }
+    return route;
 }
 
-std::vector<std::pair<Coord, Cost>> Datastructures::route_least_xpoints(Coord /*fromxpoint*/, Coord /*toxpoint*/)
+std::vector<std::pair<Coord, Cost>> Datastructures::route_least_xpoints(Coord fromxpoint, Coord toxpoint)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    return route_any(fromxpoint, toxpoint);
 }
 
 std::vector<std::pair<Coord, Cost>> Datastructures::route_fastest(Coord /*fromxpoint*/, Coord /*toxpoint*/)
@@ -445,5 +490,17 @@ Color Datastructures::get_total_color(BeaconID id) const
     Color tc = Color(bcn->total_color_sum.r/inbeam_c, bcn->total_color_sum.g/inbeam_c,
                      bcn->total_color_sum.b/inbeam_c);
     return tc;
+}
+
+std::deque<std::shared_ptr<Datastructures::Fibre_node> > Datastructures::reset_fibre_graph_state()
+{
+    //Change nodes to have color=WHITE, d=infity, pi=NIL.
+    for (const auto& [xy, fibre_ptr] : fibres_) {
+        fibre_ptr->color = WHITE;
+        fibre_ptr->d = -1;
+        fibre_ptr->path_back = nullptr;
+    }
+    //Return an empty deque to be used in a graph algorithm.
+    return std::deque<std::shared_ptr<Fibre_node>> {};
 }
 

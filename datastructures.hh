@@ -12,6 +12,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <deque>
 #include <memory>
 
 // Type for beacon IDs
@@ -302,19 +303,26 @@ public:
     //Rest average constant, worst linear.
     bool remove_fibre(Coord xpoint1, Coord xpoint2);
 
-    // Estimate of performance:
+    // Estimate of performance: W/A/B(n) where n=fibres.size()+unique_fibres.size().
     // Short rationale for estimate:
+    //both .clear() linear in container size.
     void clear_fibres();
 
     // We recommend you implement the operations below only after implementing the ones above
 
-    // Estimate of performance:
+    // Estimate of performance: W(s + k) where s = nodes, k = edges.
     // Short rationale for estimate:
+    //unordered.contains() W(n), A/B(1).
+    //reset_fibre_graph_state W/A/B(n) in fibres_.size().
+    //If s = node, k = edge. Then BFS is W(s+k).
+    //Worst case route goes through all nodes. and the final while loop is
+    //W(n) and std::reverse is W(2/n). We get
+    //W = s + k? because s + k > n??
     std::vector<std::pair<Coord, Cost>> route_any(Coord fromxpoint, Coord toxpoint);
 
     // C operations
 
-    // Estimate of performance:
+    // Estimate of performance: Same as in route_any. W(s + k).
     // Short rationale for estimate:
     std::vector<std::pair<Coord, Cost>> route_least_xpoints(Coord fromxpoint, Coord toxpoint);
 
@@ -377,14 +385,20 @@ private:
     Beacon_brightness_map brightness_map_;
 
 
+    //Used for graph algorithms.
+    enum State { WHITE, GRAY, BLACK };
 
-    //Location of a singular fiber node. Location is location.
-    //Connection between other fiber nodes is described by edges.
-    //If some Coord exists as a key in this nodes edges, then these
-    //coordinates are connected and traversal cost is in the value of the map.
+    //Represents existing fiber endpoints and their connections to other
+    //endpoints as a weighted undirected graph.
+    //edges could be read as to_neighbours.
     struct Fibre_node {
         Coord location;
         std::map<Coord, Cost> edges;
+
+        //Necessary for graph algorithms.
+        int d = -1; //infinity
+        std::shared_ptr<Fibre_node> path_back = nullptr; //pi
+        State color = WHITE;
     };
 
     using Fibre_nodes = std::unordered_map<Coord, std::shared_ptr<Fibre_node>, CoordHash>;
@@ -424,6 +438,8 @@ private:
     std::vector<BeaconID> get_longest_inbeam_route(BeaconID id) const;
 
     Color get_total_color(BeaconID id) const;
+
+    std::deque<std::shared_ptr<Fibre_node>> reset_fibre_graph_state();
 
 };
 
