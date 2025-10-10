@@ -5,6 +5,9 @@
 #include "datastructures.hh"
 
 #include <random>
+#include <algorithm>
+#include <deque>
+#include <stack>
 
 std::minstd_rand rand_engine; // Reasonably quick pseudo-random generator
 
@@ -393,9 +396,10 @@ std::vector<std::pair<Coord, Cost> > Datastructures::route_any(Coord fromxpoint,
     }
 
     //Initialize all nodes to be WHITE, have d=inf, pi=NIL.
-    std::deque<std::shared_ptr<Fibre_node>> Q = reset_fibre_graph_state();
-    //Q works as a checklist for the BFS
+    reset_fibre_graph_state();
 
+    //Q works as a checklist for the BFS
+    std::deque<std::shared_ptr<Fibre_node>> Q = {};
 
     std::shared_ptr<Fibre_node> s = fibres_.at(fromxpoint);
     s->color = GRAY;
@@ -405,7 +409,7 @@ std::vector<std::pair<Coord, Cost> > Datastructures::route_any(Coord fromxpoint,
     //v is used on this block level
     std::shared_ptr<Fibre_node> v = nullptr;
 
-    while (Q.size() != 0) {
+    while (!Q.empty()) {
         std::shared_ptr<Fibre_node> u = Q.front();
         Q.pop_front();
         for (const auto& [coord, cost] : u->edges) {
@@ -445,10 +449,71 @@ std::vector<std::pair<Coord, Cost>> Datastructures::route_fastest(Coord /*fromxp
     throw NotImplemented();
 }
 
-std::vector<Coord> Datastructures::route_fibre_cycle(Coord /*startxpoint*/)
+std::vector<Coord> Datastructures::route_fibre_cycle(Coord startxpoint)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    std::vector<Coord> loop = {};
+    //Check point exists
+    if (!fibres_.contains(startxpoint)) {
+        return loop;
+    }
+    /*reset_fibre_graph_state();
+    std::shared_ptr<Fibre_node> s = fibres_.at(startxpoint);
+    std::pair<std::shared_ptr<Fibre_node>, Coord> joo = dfs_recursive(s);
+
+    loop.push_back(joo.second);
+    while (joo.first->path_back != nullptr) {
+        loop.push_back(s->location);
+        s = s->path_back;
+    }
+    loop.push_back(startxpoint);
+    std::reverse(loop.begin(), loop.end());
+    return loop;*/
+
+    reset_fibre_graph_state();
+
+    std::stack<std::shared_ptr<Fibre_node>> S = {};
+
+    std::shared_ptr<Fibre_node> s = fibres_.at(startxpoint);
+    std::shared_ptr<Fibre_node> u = nullptr;
+    std::shared_ptr<Fibre_node> v = nullptr;
+    S.push(s);
+
+    while (!S.empty()) {
+        u = S.top();
+        S.pop();
+        if (u->color == WHITE) {
+            u->color = GRAY;
+            S.push(u);
+            for (const auto& [coord, cost] : u->edges) {
+                v = fibres_.at(coord);
+                if (v->path_back == u || u->path_back == v) {
+                    continue;
+                }
+                if (v->color == WHITE) {
+                    v->path_back = u;
+                    S.push(v);
+                }
+                else if (v->color == GRAY) {
+                    while (!S.empty()) {
+                        S.pop();
+                    }
+                    break;
+                }
+            }
+
+        } else {
+            u->color = BLACK;
+        }
+    }
+
+    loop.push_back(v->location);
+    while (u->path_back != nullptr) {
+        loop.push_back(u->location);
+        u = u->path_back;
+    }
+    loop.push_back(startxpoint);
+    std::reverse(loop.begin(), loop.end());
+    return loop;
 }
 
 std::vector<BeaconID> Datastructures::get_longest_inbeam_route(BeaconID id) const
@@ -492,7 +557,7 @@ Color Datastructures::get_total_color(BeaconID id) const
     return tc;
 }
 
-std::deque<std::shared_ptr<Datastructures::Fibre_node> > Datastructures::reset_fibre_graph_state()
+void Datastructures::reset_fibre_graph_state()
 {
     //Change nodes to have color=WHITE, d=infity, pi=NIL.
     for (const auto& [xy, fibre_ptr] : fibres_) {
@@ -500,7 +565,32 @@ std::deque<std::shared_ptr<Datastructures::Fibre_node> > Datastructures::reset_f
         fibre_ptr->d = -1;
         fibre_ptr->path_back = nullptr;
     }
-    //Return an empty deque to be used in a graph algorithm.
-    return std::deque<std::shared_ptr<Fibre_node>> {};
 }
+
+std::pair<std::shared_ptr<Datastructures::Fibre_node>, Coord> Datastructures::dfs_recursive(std::shared_ptr<Fibre_node> s)
+{
+    s->color = GRAY;
+    std::pair<std::shared_ptr<Fibre_node>, Coord> v = std::make_pair(nullptr, NO_COORD);
+    for (const auto& [coord, cost] : s->edges) {
+        v.first = fibres_.at(coord);
+        if (s->path_back == v.first) {
+            continue;
+        }
+        if (v.first->color == WHITE) {
+            v.first->path_back = s;
+            v = dfs_recursive(v.first);
+            if (v.first->color == BLACK) {
+                return v;
+            }
+        }
+        else if (v.first->color == GRAY) {
+            s->color = BLACK;
+            return std::make_pair(s, v.first->location);
+        }
+    }
+    return v;
+}
+
+
+
 

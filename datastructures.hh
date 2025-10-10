@@ -11,8 +11,6 @@
 #include <unordered_map>
 #include <map>
 #include <set>
-#include <algorithm>
-#include <deque>
 #include <memory>
 
 // Type for beacon IDs
@@ -439,8 +437,9 @@ private:
 
     Color get_total_color(BeaconID id) const;
 
-    std::deque<std::shared_ptr<Fibre_node>> reset_fibre_graph_state();
+    void reset_fibre_graph_state();
 
+    std::pair<std::shared_ptr<Fibre_node>, Coord> dfs_recursive(std::shared_ptr<Fibre_node> s);
 };
 
 #endif // DATASTRUCTURES_HH
