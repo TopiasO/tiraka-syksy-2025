@@ -324,12 +324,24 @@ public:
     // Short rationale for estimate:
     std::vector<std::pair<Coord, Cost>> route_least_xpoints(Coord fromxpoint, Coord toxpoint);
 
-    // Estimate of performance:
+    // Estimate of performance: W = (n+k+s)log(s+k)
     // Short rationale for estimate:
+    //reset_graph_state() W/A/B(n) in fibres_.size().
+    //Dijkstras algorithm W((s + k)log (s + k)) where s = nodes, k = edges.
+    //Last while loop is linear in ~fibres_.size() in the worst case.
+    //std::reset worst case W(n/2) in fibres_.size().
+    //W = (n+k+s)log(s+k)
     std::vector<std::pair<Coord, Cost>> route_fastest(Coord fromxpoint, Coord toxpoint);
 
-    // Estimate of performance:
+    // Estimate of performance: W(n + k + s)
     // Short rationale for estimate:
+    //reset_fibre_graph_state W/A/B(n) in fibres_.size().
+    //first while loop is linear in the amount of nodes in the worst case.
+    //for loop is linear in the amount of edges in the graph. So dfs algo is
+    //So if n = fibres_.size(), s = nodes, k = edges. W = n + k + s.
+    //Last while loop is linear in ~fibres_.size() in the worst case.
+    //std::reset worst case W(n/2) in fibres_.size().
+    //W = 2n + k + s. W = n + k + s.
     std::vector<Coord> route_fibre_cycle(Coord startxpoint);
 
 private:
