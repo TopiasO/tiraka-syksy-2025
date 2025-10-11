@@ -399,6 +399,14 @@ private:
         State color = WHITE;
     };
 
+    struct Cmp_fibre_ptrs {
+        bool operator()(const std::shared_ptr<Fibre_node> lhs,
+                        const std::shared_ptr<Fibre_node> rhs) const
+        {
+            return lhs->d < rhs->d;
+        }
+    };
+
     using Fibre_nodes = std::unordered_map<Coord, std::shared_ptr<Fibre_node>, CoordHash>;
 
     using Unique_fibres = std::set<std::pair<Coord, Coord>>;
@@ -412,8 +420,6 @@ private:
     //Used by all_fibres. Adds memory overhead, but massively simplifies getting
     //Unique fibres.
     Unique_fibres unique_fibres_;
-
-
 
 
     // Add stuff needed for your class implementation below
@@ -439,7 +445,9 @@ private:
 
     void reset_fibre_graph_state();
 
-    std::pair<std::shared_ptr<Fibre_node>, Coord> dfs_recursive(std::shared_ptr<Fibre_node> s);
+    bool relax(std::shared_ptr<Fibre_node> u, std::shared_ptr<Fibre_node> v);
+
+    std::shared_ptr<Fibre_node> dfs_recursive(std::shared_ptr<Fibre_node> s);
 };
 
 #endif // DATASTRUCTURES_HH

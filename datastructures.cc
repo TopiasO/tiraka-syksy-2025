@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <deque>
 #include <stack>
+#include <queue>
 
 std::minstd_rand rand_engine; // Reasonably quick pseudo-random generator
 
@@ -303,9 +304,9 @@ bool Datastructures::add_fibre(Coord xpoint1, Coord xpoint2, Cost cost)
     //Add fibre to unique_fibres.
     //Make sure pair.first < pair.second.
     if (xpoint1 < xpoint2) {
-        unique_fibres_.emplace(std::make_pair(xpoint1, xpoint2));
+        unique_fibres_.emplace(xpoint1, xpoint2);
     } else {
-        unique_fibres_.emplace(std::make_pair(xpoint2, xpoint1));
+        unique_fibres_.emplace(xpoint2, xpoint1);
     }
 
     return true;
@@ -349,32 +350,31 @@ std::vector<std::pair<Coord, Coord> > Datastructures::all_fibres()
 
 bool Datastructures::remove_fibre(Coord xpoint1, Coord xpoint2)
 {
-    //Check if fibre exists.
-    if (!unique_fibres_.contains(std::make_pair(xpoint1, xpoint2))) {
-        return false;
-    }
-    unique_fibres_.erase(std::make_pair(xpoint1, xpoint2));
-
-    //If nodes are ONLY connected to each other.
-    if (fibres_.at(xpoint1)->edges.size() == 1 && fibres_.at(xpoint2)->edges.size() == 1) {
-        fibres_.erase(xpoint1);
-        fibres_.erase(xpoint2);
-        return true;
-    }
-
-    //Check if either one of the nodes is ONLY connected to the other
-    if (fibres_.at(xpoint1)->edges.size() == 1) {
-        fibres_.at(xpoint2)->edges.erase(xpoint1);
-        fibres_.erase(xpoint1);
-    }
-    else if (fibres_.at(xpoint2)->edges.size() == 1) {
-        fibres_.at(xpoint1)->edges.erase(xpoint2);
-        fibres_.erase(xpoint2);
+    std::pair<Coord, Coord> fibre = std::make_pair(NO_COORD, NO_COORD);
+    //Check which coord is smaller.
+    if (xpoint1 < xpoint2) {
+        fibre = {xpoint1, xpoint2};
     }
     else {
-        //Both nodes are connected to multiple other nodes.
-        fibres_.at(xpoint1)->edges.erase(xpoint2);
-        fibres_.at(xpoint2)->edges.erase(xpoint1);
+        fibre = {xpoint2, xpoint1};
+    }
+
+    //Check if fibre exists.
+    if (!unique_fibres_.contains(fibre)) {
+        return false;
+    }
+    unique_fibres_.erase(fibre);
+
+    std::shared_ptr<Fibre_node> f1 = fibres_.at(xpoint1);
+    std::shared_ptr<Fibre_node> f2 = fibres_.at(xpoint2);
+    f1->edges.erase(xpoint2);
+    f2->edges.erase(xpoint1);
+
+    if (f1->edges.empty()) {
+        fibres_.erase(xpoint1);
+    }
+    if (f2->edges.empty()) {
+        fibres_.erase(xpoint2);
     }
     return true;
 }
@@ -387,6 +387,7 @@ void Datastructures::clear_fibres()
 
 std::vector<std::pair<Coord, Cost> > Datastructures::route_any(Coord fromxpoint, Coord toxpoint)
 {
+    //Breadth first search
     //result will be stored in this vector
     std::vector<std::pair<Coord, Cost>> route = {};
 
@@ -443,14 +444,57 @@ std::vector<std::pair<Coord, Cost>> Datastructures::route_least_xpoints(Coord fr
     return route_any(fromxpoint, toxpoint);
 }
 
-std::vector<std::pair<Coord, Cost>> Datastructures::route_fastest(Coord /*fromxpoint*/, Coord /*toxpoint*/)
+std::vector<std::pair<Coord, Cost>> Datastructures::route_fastest(Coord fromxpoint, Coord toxpoint)
 {
-    // Replace the line below with your implementation
-    throw NotImplemented();
+    //Dijkstras algorithm
+    std::vector<std::pair<Coord, Cost>> fastest_route = {};
+
+    if (!fibres_.contains(fromxpoint) || !fibres_.contains(toxpoint)) {
+        return fastest_route;
+    }
+    reset_fibre_graph_state();
+    std::priority_queue<std::shared_ptr<Fibre_node>,
+                        std::vector<std::shared_ptr<Fibre_node>>, Cmp_fibre_ptrs> Q = {};
+
+    std::shared_ptr<Fibre_node> s = fibres_.at(fromxpoint);
+    s->color = GRAY;
+    s->d = 0;
+    Q.push(s);
+
+    while (!Q.empty()) {
+        std::shared_ptr<Fibre_node> u = Q.top();
+        Q.pop();
+        for (const auto& [coord, edges] : u->edges) {
+            std::shared_ptr<Fibre_node> v = fibres_.at(coord);
+            if (u->path_back == v) {
+                continue;
+            }
+            if (relax(u, v)) {
+                if (v->color == WHITE) {
+                    v->color = GRAY;
+                }
+                Q.push(v);
+            }
+        }
+        u->color = BLACK;
+    }
+    s = fibres_.at(toxpoint);
+
+    if (s->color == WHITE) {
+        return fastest_route;
+    }
+
+    while (s != nullptr) {
+        fastest_route.emplace_back(s->location, s->d);
+        s = s->path_back;
+    }
+    std::reverse(fastest_route.begin(), fastest_route.end());
+    return fastest_route;
 }
 
 std::vector<Coord> Datastructures::route_fibre_cycle(Coord startxpoint)
 {
+    //Depth first search
     std::vector<Coord> loop = {};
     //Check point exists
     if (!fibres_.contains(startxpoint)) {
@@ -458,10 +502,10 @@ std::vector<Coord> Datastructures::route_fibre_cycle(Coord startxpoint)
     }
     /*reset_fibre_graph_state();
     std::shared_ptr<Fibre_node> s = fibres_.at(startxpoint);
-    std::pair<std::shared_ptr<Fibre_node>, Coord> joo = dfs_recursive(s);
+    s = dfs_recursive(s);
 
     loop.push_back(joo.second);
-    while (joo.first->path_back != nullptr) {
+    while (s.first->path_back != nullptr) {
         loop.push_back(s->location);
         s = s->path_back;
     }
@@ -476,6 +520,7 @@ std::vector<Coord> Datastructures::route_fibre_cycle(Coord startxpoint)
     std::shared_ptr<Fibre_node> s = fibres_.at(startxpoint);
     std::shared_ptr<Fibre_node> u = nullptr;
     std::shared_ptr<Fibre_node> v = nullptr;
+    bool loop_found = false;
     S.push(s);
 
     while (!S.empty()) {
@@ -494,6 +539,7 @@ std::vector<Coord> Datastructures::route_fibre_cycle(Coord startxpoint)
                     S.push(v);
                 }
                 else if (v->color == GRAY) {
+                    loop_found = true;
                     while (!S.empty()) {
                         S.pop();
                     }
@@ -505,13 +551,14 @@ std::vector<Coord> Datastructures::route_fibre_cycle(Coord startxpoint)
             u->color = BLACK;
         }
     }
-
+    if (!loop_found) {
+        return loop;
+    }
     loop.push_back(v->location);
-    while (u->path_back != nullptr) {
+    while (u != nullptr) {
         loop.push_back(u->location);
         u = u->path_back;
     }
-    loop.push_back(startxpoint);
     std::reverse(loop.begin(), loop.end());
     return loop;
 }
@@ -567,28 +614,35 @@ void Datastructures::reset_fibre_graph_state()
     }
 }
 
-std::pair<std::shared_ptr<Datastructures::Fibre_node>, Coord> Datastructures::dfs_recursive(std::shared_ptr<Fibre_node> s)
+bool Datastructures::relax(std::shared_ptr<Fibre_node> u, std::shared_ptr<Fibre_node> v)
+{
+    int costUV = u->edges.at(v->location);
+    if (v->d > u->d+costUV || v->d == -1) {
+        v->d = u->d+costUV;
+        v->path_back = u;
+        return true;
+    }
+    return false;
+}
+
+std::shared_ptr<Datastructures::Fibre_node> Datastructures::dfs_recursive(std::shared_ptr<Fibre_node> s)
 {
     s->color = GRAY;
-    std::pair<std::shared_ptr<Fibre_node>, Coord> v = std::make_pair(nullptr, NO_COORD);
     for (const auto& [coord, cost] : s->edges) {
-        v.first = fibres_.at(coord);
-        if (s->path_back == v.first) {
-            continue;
-        }
-        if (v.first->color == WHITE) {
-            v.first->path_back = s;
-            v = dfs_recursive(v.first);
-            if (v.first->color == BLACK) {
+        std::shared_ptr<Fibre_node> v = fibres_.at(coord);
+        if (v->color == WHITE) {
+            v->path_back = s;
+            v = dfs_recursive(v);
+            if (v->color == BLACK) {
                 return v;
             }
         }
-        else if (v.first->color == GRAY) {
-            s->color = BLACK;
-            return std::make_pair(s, v.first->location);
+        if (s->path_back != v && v->color == GRAY) {
+            v->color = BLACK;
+            return s;
         }
     }
-    return v;
+    return nullptr;
 }
 
 
