@@ -459,7 +459,7 @@ private:
 
     bool relax(std::shared_ptr<Fibre_node> u, std::shared_ptr<Fibre_node> v);
 
-    std::shared_ptr<Fibre_node> dfs_recursive(std::shared_ptr<Fibre_node> s);
+    //std::shared_ptr<Fibre_node> dfs_recursive(std::shared_ptr<Fibre_node> s);
 };
 
 #endif // DATASTRUCTURES_HH

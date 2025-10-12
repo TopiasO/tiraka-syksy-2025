@@ -452,7 +452,10 @@ std::vector<std::pair<Coord, Cost>> Datastructures::route_fastest(Coord fromxpoi
     if (!fibres_.contains(fromxpoint) || !fibres_.contains(toxpoint)) {
         return fastest_route;
     }
+    //Change all nodes to white, d to inf, path_back to NIL.
     reset_fibre_graph_state();
+
+    //Priority queue ordered by d.
     std::priority_queue<std::shared_ptr<Fibre_node>,
                         std::vector<std::shared_ptr<Fibre_node>>, Cmp_fibre_ptrs> Q = {};
 
@@ -461,14 +464,12 @@ std::vector<std::pair<Coord, Cost>> Datastructures::route_fastest(Coord fromxpoi
     s->d = 0;
     Q.push(s);
 
+    //Dijkstras algorithm.
     while (!Q.empty()) {
         std::shared_ptr<Fibre_node> u = Q.top();
         Q.pop();
         for (const auto& [coord, edges] : u->edges) {
             std::shared_ptr<Fibre_node> v = fibres_.at(coord);
-            if (u->path_back == v) {
-                continue;
-            }
             if (relax(u, v)) {
                 if (v->color == WHITE) {
                     v->color = GRAY;
@@ -480,10 +481,12 @@ std::vector<std::pair<Coord, Cost>> Datastructures::route_fastest(Coord fromxpoi
     }
     s = fibres_.at(toxpoint);
 
+    //S wasn't reached it it's still white
     if (s->color == WHITE) {
         return fastest_route;
     }
 
+    //Traverse through the route backwards.
     while (s != nullptr) {
         fastest_route.emplace_back(s->location, s->d);
         s = s->path_back;
@@ -494,35 +497,24 @@ std::vector<std::pair<Coord, Cost>> Datastructures::route_fastest(Coord fromxpoi
 
 std::vector<Coord> Datastructures::route_fibre_cycle(Coord startxpoint)
 {
-    //Depth first search
     std::vector<Coord> loop = {};
     //Check point exists
     if (!fibres_.contains(startxpoint)) {
         return loop;
     }
-    /*reset_fibre_graph_state();
-    std::shared_ptr<Fibre_node> s = fibres_.at(startxpoint);
-    s = dfs_recursive(s);
-
-    loop.push_back(joo.second);
-    while (s.first->path_back != nullptr) {
-        loop.push_back(s->location);
-        s = s->path_back;
-    }
-    loop.push_back(startxpoint);
-    std::reverse(loop.begin(), loop.end());
-    return loop;*/
 
     reset_fibre_graph_state();
 
     std::stack<std::shared_ptr<Fibre_node>> S = {};
 
     std::shared_ptr<Fibre_node> s = fibres_.at(startxpoint);
+    //Initialize u, v here. They are needed after the while loop.
     std::shared_ptr<Fibre_node> u = nullptr;
     std::shared_ptr<Fibre_node> v = nullptr;
     bool loop_found = false;
     S.push(s);
 
+    //Depth first search
     while (!S.empty()) {
         u = S.top();
         S.pop();
@@ -531,18 +523,21 @@ std::vector<Coord> Datastructures::route_fibre_cycle(Coord startxpoint)
             S.push(u);
             for (const auto& [coord, cost] : u->edges) {
                 v = fibres_.at(coord);
-                if (v->path_back == u || u->path_back == v) {
+                if (u->path_back == v) {
                     continue;
                 }
                 if (v->color == WHITE) {
                     v->path_back = u;
                     S.push(v);
                 }
+                //loop found
                 else if (v->color == GRAY) {
                     loop_found = true;
+                    //Fullfill outer while loops condition.
                     while (!S.empty()) {
                         S.pop();
                     }
+                    //Break inner for loop.
                     break;
                 }
             }
@@ -625,7 +620,7 @@ bool Datastructures::relax(std::shared_ptr<Fibre_node> u, std::shared_ptr<Fibre_
     return false;
 }
 
-std::shared_ptr<Datastructures::Fibre_node> Datastructures::dfs_recursive(std::shared_ptr<Fibre_node> s)
+/*std::shared_ptr<Datastructures::Fibre_node> Datastructures::dfs_recursive(std::shared_ptr<Fibre_node> s)
 {
     s->color = GRAY;
     for (const auto& [coord, cost] : s->edges) {
@@ -643,7 +638,7 @@ std::shared_ptr<Datastructures::Fibre_node> Datastructures::dfs_recursive(std::s
         }
     }
     return nullptr;
-}
+}*/
 
 
 
